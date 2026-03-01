@@ -49,3 +49,24 @@ exports.addTrustedContact = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
+exports.getContacts = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    res.json({ contacts: user.trustedContacts });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+exports.deleteContact = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    user.trustedContacts = user.trustedContacts.filter(
+      contact => contact._id.toString() !== req.params.id
+    );
+    await user.save();
+    res.json({ message: 'Contact deleted', contacts: user.trustedContacts });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
