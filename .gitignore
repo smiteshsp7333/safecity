@@ -1,0 +1,4 @@
+cd C:\Users\smite\safecity
+echo node_modules > .gitignore
+echo .env >> .gitignore
+echo backend/.env >> .gitignore
