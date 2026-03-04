@@ -3,22 +3,21 @@ const Report = require('../models/Report');
 exports.createReport = async (req, res) => {
   try {
     const { address, category, description, severity, anonymous, coordinates } = req.body;
-
     const report = await Report.create({
       user: anonymous ? null : req.user.id,
-      location: {
-        type: 'Point',
-        coordinates: coordinates
-      },
-      address,
-      category,
-      description,
-      severity,
-      anonymous
+      location: { type: 'Point', coordinates: coordinates },
+      address, category, description, severity, anonymous
+    });
+
+    req.io.emit('new_report', {
+      category: report.category,
+      address: report.address,
+      severity: report.severity,
+      coordinates: report.location.coordinates,
+      createdAt: report.createdAt
     });
 
     res.status(201).json({ message: 'Report created successfully', report });
-
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
@@ -36,21 +35,30 @@ exports.getReports = async (req, res) => {
 exports.getNearbyReports = async (req, res) => {
   try {
     const { longitude, latitude, maxDistance = 5000 } = req.query;
-
     const reports = await Report.find({
       location: {
         $near: {
-          $geometry: {
-            type: 'Point',
-            coordinates: [parseFloat(longitude), parseFloat(latitude)]
-          },
+          $geometry: { type: 'Point', coordinates: [parseFloat(longitude), parseFloat(latitude)] },
           $maxDistance: parseInt(maxDistance)
         }
       }
     });
-
     res.json(reports);
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+exports.updateReportStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const report = await Report.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    res.json({ message: 'Status updated', report });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
   }
 };

@@ -35,6 +35,11 @@ const reportSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  status: {
+    type: String,
+    enum: ['pending', 'in_progress', 'resolved', 'fake'],
+    default: 'pending'
+  },
   createdAt: {
     type: Date,
     default: Date.now
